@@ -5,7 +5,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import de.tum.cit.ase.bomberquest.BomberQuestGame;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -48,15 +50,26 @@ public class GameMap {
     private final Chest chest;
     
     private final Flowers[][] flowers;
+
+    private List<AbstractWall> walls;
+
+    private List<Bomb> bombs;
     
     public GameMap(BomberQuestGame game) {
         this.game = game;
         this.world = new World(Vector2.Zero, true);
-        // Create a player with initial position (1, 3)
-        this.player = new Player(this.world, 1, 3);
-        // Create a chest in the middle of the map
+
+        this.player = new Player(world, 1, 3);
         this.chest = new Chest(world, 3, 3);
-        // Create flowers in a 7x7 grid
+
+        this.walls = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+                this.walls.add(new DestructibleWall(world, i, i));
+        }
+        for (int i = 0; i < 3; i++) {
+            this.walls.add(new IndestructibleWall(world, i, i+1));
+        }
+
         this.flowers = new Flowers[7][7];
         for (int i = 0; i < flowers.length; i++) {
             for (int j = 0; j < flowers[i].length; j++) {
@@ -72,6 +85,16 @@ public class GameMap {
      */
     public void tick(float frameTime) {
         this.player.tick(frameTime);
+
+        this.bombs = Bomb.getBombs();
+        for (Bomb bomb : this.bombs) {
+            bomb.tick(frameTime);
+            if (bomb.isAnimationComplete()) {
+                Bomb.addToRemoveBombs(bomb);
+            }
+        }
+        Bomb.removeBombs();
+
         doPhysicsStep(frameTime);
     }
     
@@ -89,17 +112,14 @@ public class GameMap {
     }
     
     /** Returns the player on the map. */
-    public Player getPlayer() {
-        return player;
-    }
-    
+    public Player getPlayer() {return player;}
     /** Returns the chest on the map. */
-    public Chest getChest() {
-        return chest;
-    }
+    public Chest getChest() {return chest;}
     
     /** Returns the flowers on the map. */
-    public List<Flowers> getFlowers() {
-        return Arrays.stream(flowers).flatMap(Arrays::stream).toList();
-    }
+    public List<Flowers> getFlowers() {return Arrays.stream(flowers).flatMap(Arrays::stream).toList();}
+
+    public List<AbstractWall> getWalls() {return walls;}
+
+    public List<Bomb> getBombs() {return bombs;}
 }

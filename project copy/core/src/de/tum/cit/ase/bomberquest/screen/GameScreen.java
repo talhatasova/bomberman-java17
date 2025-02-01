@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ScreenUtils;
 import de.tum.cit.ase.bomberquest.BomberQuestGame;
+import de.tum.cit.ase.bomberquest.map.AbstractWall;
+import de.tum.cit.ase.bomberquest.map.Bomb;
 import de.tum.cit.ase.bomberquest.map.Flowers;
 import de.tum.cit.ase.bomberquest.texture.Drawable;
 import de.tum.cit.ase.bomberquest.map.GameMap;
@@ -107,6 +109,17 @@ public class GameScreen implements Screen {
         for (Flowers flowers : map.getFlowers()) {
             draw(spriteBatch, flowers);
         }
+
+        for (AbstractWall wall : map.getWalls()) {
+            if (wall instanceof Drawable) {
+                draw(spriteBatch, (Drawable) wall);
+            }
+        }
+
+        for (Bomb bomb : map.getBombs()) {
+            draw(spriteBatch, bomb);
+        }
+
         draw(spriteBatch, map.getChest());
         draw(spriteBatch, map.getPlayer());
         

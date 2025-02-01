@@ -11,11 +11,15 @@ import com.badlogic.gdx.physics.box2d.World;
 import de.tum.cit.ase.bomberquest.texture.Animations;
 import de.tum.cit.ase.bomberquest.texture.Drawable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents the player character in the game.
  * The player has a hitbox, so it can collide with other objects in the game.
  */
 public class Player implements Drawable {
+    private final World world;
     /** Total time elapsed since the game started. We use this for calculating the player movement and animating it. */
     private float elapsedTime;
     private final Body hitbox;
@@ -23,23 +27,19 @@ public class Player implements Drawable {
     private float speed;
     private Animation<TextureRegion> appearance;
 
+    private List<Bomb> bombs;
+
     
     public Player(World world, float x, float y) {
+        this.world = world;
         this.hitbox = createHitbox(world, x, y);
         this.xvel = 0f;
         this.yvel = 0f;
         this.speed = 3f;
         this.appearance = Animations.CHARACTER_WALK_DOWN;
+        this.bombs = new ArrayList<>();
     }
-    
-    /**
-     * Creates a Box2D body for the player.
-     * This is what the physics engine uses to move the player around and detect collisions with other bodies.
-     * @param world The Box2D world to add the body to.
-     * @param startX The initial X position.
-     * @param startY The initial Y position.
-     * @return The created body.
-     */
+
     private Body createHitbox(World world, float startX, float startY) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
@@ -51,6 +51,14 @@ public class Player implements Drawable {
         circle.dispose();
         body.setUserData(this);
         return body;
+    }
+
+    public void placeBomb() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) { // Prevents rapid placement
+            float bombX = Math.round(getX()); // Round to grid coordinates
+            float bombY = Math.round(getY());
+            this.bombs.add(Bomb.createBomb(world, bombX, bombY, this));
+        }
     }
 
     public void move() {
@@ -80,20 +88,11 @@ public class Player implements Drawable {
         }
         this.hitbox.setLinearVelocity(this.xvel, this.yvel);
     }
-    /**
-     * Move the player around in a circle by updating the linear velocity of its hitbox every frame.
-     * This doesn't actually move the player, but it tells the physics engine how the player should move next frame.
-     * @param frameTime the time since the last frame.
-     */
+
     public void tick(float frameTime) {
         this.elapsedTime += frameTime;
-        // Make the player move in a circle with radius 2 tiles
-        // You can change this to make the player move differently, e.g. in response to user input.
-        // See Gdx.input.isKeyPressed() for keyboard input
         move();
-//        float xVelocity = (float) Math.sin(this.elapsedTime) * 2;
-//        float yVelocity = (float) Math.cos(this.elapsedTime) * 2;
-//        this.hitbox.setLinearVelocity(xVelocity, yVelocity);
+        placeBomb();
     }
     
     @Override
